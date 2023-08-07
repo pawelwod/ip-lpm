@@ -116,11 +116,7 @@ main(void)
 		test_del(prefix, len, -1);
 	}
 
-	len = 10;
-
 	/* The same two subnets with different prefixes */
-	test_add(prefix, len, 0);
-
 	test_add(IP4_PREFIX(ips[0], 10), 10, 0);
 	test_add(IP4_PREFIX(ips[1], 10), 10, 0);
 	test_add(IP4_PREFIX(ips[0], 11), 11, 0);
@@ -150,6 +146,23 @@ main(void)
 
 	test_del(IP4_PREFIX(ips[0], 10), 10, 0);
 	test_del(IP4_PREFIX(ips[1], 10), 10, 0);
+
+	unsigned mask = 12;
+	unsigned base_prefix = IP4(0xAA, 0x00, 0x00, 0xFF) & IP4_NETMASK(mask);
+
+	/* Test searching in large number of IPs. */
+	unsigned prefixes[256];
+	for (unsigned i = 0; i < 256; i++)
+		prefixes[i] = base_prefix + (i << 12);
+
+	test_add_del(ADD, prefixes, mask, 256, 0);
+
+	for (unsigned i = 0; i < 256; i++) {
+		unsigned ip = prefixes[i] + i;
+
+		test_check_ip(ip, mask);
+	}
+
 	/* etc... */
 
 	printf("Success\n");
